@@ -3,8 +3,14 @@
     public class PredictionHistory
     {
         public int Id { get; set; }
-        public float PredictedPrice { get; set; }
+        
         public string? InputData { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public float PredictedPrice { get; set; }
+
+        public DateTime PredictionDate { get; set; } = DateTime.Now;
+
+        public string PaymentType { get; set; } = string.Empty;   
+
+
     }
 }

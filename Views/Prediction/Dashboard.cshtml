@@ -1,0 +1,126 @@
+﻿@using System.Text.Json
+@model Grosu_Andrada_Lab4.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard predicții";
+}
+
+<h2>Dashboard predicții</h2>
+
+<!-- 🔹 FORMULAR DE FILTRARE PERIOADĂ -->
+<form asp-action="Dashboard" asp-controller="Prediction" method="get" class="mb-3">
+    <div class="row g-2">
+        <div class="col-auto">
+            <label for="fromDate" class="form-label">De la data</label>
+            <input type="date" id="fromDate" name="fromDate"
+                   value="@(Model.FromDate?.ToString("yyyy-MM-dd"))"
+                   class="form-control" />
+        </div>
+        <div class="col-auto">
+            <label for="toDate" class="form-label">Până la data</label>
+            <input type="date" id="toDate" name="toDate"
+                   value="@(Model.ToDate?.ToString("yyyy-MM-dd"))"
+                   class="form-control" />
+        </div>
+        <div class="col-auto align-self-end">
+            <button type="submit" class="btn btn-primary">Filtrează</button>
+        </div>
+    </div>
+</form>
+
+<!-- 🔹 CARDURILE și GRAFICUL -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Număr total de predicții</h5>
+                <p class="card-text display-6">@Model.TotalPredictions</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Preț mediu per tip de plată</h5>
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tip plată</th>
+                            <th>Număr predicții</th>
+                            <th>Preț mediu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.PaymentTypeStats)
+                        {
+                            <tr>
+                                <td>@item.PaymentType</td>
+                                <td>@item.Count</td>
+                                <td>@item.AveragePrice.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secțiune: Grafic distribuție prețuri -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Distribuția prețurilor prezise</h5>
+                <canvas id="priceChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js din CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(JsonSerializer.Serialize(
+                    Model.PriceBuckets.Select(b => b.BucketLabel)
+            ));
+
+    const dataValues = @Html.Raw(JsonSerializer.Serialize(
+                Model.PriceBuckets.Select(b => b.Count)
+        ));
+
+    const ctx = document.getElementById('priceChart').getContext('2d');
+
+        const priceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Număr de predicții',
+                    data: dataValues,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Număr predicții'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Interval preț'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
